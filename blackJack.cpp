@@ -1,8 +1,13 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
+#include <cstdlib>
+#include <stdlib.h>
+#include <time.h>
+#include <stdio.h>
 
 using namespace std;
+int main();
 
 enum suit { 
 	HEART,
@@ -20,7 +25,7 @@ public:
 		value = v;
 	};
 	static Poker getRandomCard(){
-		suit tp = (suit) rand()%4;
+		suit tp = static_cast<suit>(rand()%4);
 		int val = rand()%13 + 1;
 		Poker card(tp,val);
 		return card;
@@ -80,8 +85,12 @@ public:
 	int getCardSum(){
 		int i = 0;
 		int sum = 0;
-		while(i<cardList.size()){
-			sum+=cardList[i].value;
+		while(i<cardList.size()){			
+			if(cardList[i].value==11||cardList[i].value==12||cardList[i].value==13){				
+				sum+=10;
+			}else{
+				sum+=cardList[i].value;		
+			}			
 			i++;
 		}
 		return sum;
@@ -122,33 +131,90 @@ void getACardHost(){
 	}
 }
 
+void userPharse();
+
 void init(){
 	User.cardList.clear();
 	Host.cardList.clear();
 	getACardUser();
+	getACardHost();
+	getACardUser();
 	getACardHost();	
+	cout << "You:\t\t";
+	User.printAllCard();
+	cout << "(" << User.getCardSum() << ")\n";
+	cout << "House:\t\t";	
+	Host.printAllCardHost();
+	cout << "\n";
+	userPharse();
+}
+void doReplay();
+
+void resultPharse();
+void resultPharse(){
+	cout << "Result:\n";
+	cout << "You:\t\t" << User.getCardSum() << "\n";
+	cout << "House:\t\t" << Host.getCardSum() << "\n";
+	if(User.getCardSum()>Host.getCardSum()){
+		cout << "You win.\n";
+	}else if(User.getCardSum()==Host.getCardSum()){
+		cout << "Draw.\n";
+	}else{
+		cout << "House win.\n";
+	}
+	doReplay();
 }
 
-void printStatus(){
-	cout << "Host:\t";
-	Host.printAllCardHost();	
-	cout << "\n";
-	cout << "User:\t";
-	User.printAllCard();
-	cout << User.getCardSum();
-	cout << "\n";
-	if(User.getCardSum()<21){
-		char t;
-		cout << "want a new Card?";
-		cin >> t;
-		if(t == 'Y'|| t == 'y'){
-			getACardUser();
-			printStatus();
+
+void hostPharse();
+void hostPharse(){
+	while(true){
+		getACardHost();
+		cout << "House:\t\t";
+		Host.printAllCardHost();
+		cout << "(" << Host.getCardSum() << ")\n";
+		if(Host.getCardSum()>21){
+			cout << "House bursts\n";
+			doReplay();
+		}else if(Host.getCardSum()>User.getCardSum()){
+			resultPharse();
+			break;
 		}
-	}else if(User.getCardSum()==21){
-		cout << "You win somewho";
+	}	
+}
+
+void doReplay(){
+	cout << "Do you want to play again?(Y/N)";
+	char y;
+	cin >> y;
+	if(y=='y'||y=='Y'){
+		cout << "\n";
+		main();
 	}else{
-		cout << "You busted";
+		exit(0);
+	}
+}
+char x;
+void userPharse(){
+	cout << "\n";
+	x='n';
+	while(User.getCardSum()<21){
+		cout << "Do you want a hit?(Y/N)";
+		cin >> x;
+		if(x!='Y'&&x!='y'){
+			break;
+		}
+		getACardUser();
+		cout << "You:\t\t";
+		User.printAllCard();
+		cout << "(" << User.getCardSum() << ")\n";
+	}
+	if(User.getCardSum()<=21){
+		hostPharse();
+	}else{
+		x = 'n';
+		cout << "You burst.\n";
+		doReplay();
 	}
 }
 
@@ -156,14 +222,6 @@ int main()
 {
 	srand(time(NULL));
 	cout << "Welcome to BlackJack\n";
-	init();	
-	printStatus();
-	getACardUser();	
-	cout << "Play Again?";
-	char again;
-	cin >> again;
-	if(again == 'Y'||again == 'y'){
-		main();
-	}
+	init();		
 	return 0;
 }
